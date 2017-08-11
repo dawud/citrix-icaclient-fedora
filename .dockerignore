@@ -1,0 +1,17 @@
+#
+# https://docs.docker.com/engine/reference/builder/#dockerignore-file
+# https://codefresh.io/blog/not-ignore-dockerignore/
+#
+# By default, ignore everything
+#
+*
+#
+# These files are included to comply with best practices described at
+# http://docs.projectatomic.io/container-best-practices/
+#
+!Dockerfile
+!help.1
+#
+# Include only files required by your Dockerfile
+#
+!wfclient.ini

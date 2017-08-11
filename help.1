@@ -1,0 +1,106 @@
+.TH "ICA " "1" " Container Image Pages" "David Sastre Medina <d.sastre.medina@gmail.com>" "August 12, 2017" 
+.nh
+.ad l
+
+
+.SH NAME
+.PP
+Citrix Receiver \- Citrix Receiver is the easy\-to\-install client software that
+provides access to your XenDesktop and XenApp installations.
+
+
+.SH DESCRIPTION
+.PP
+Receiver for Linux enables users to access virtual desktops
+and hosted applications delivered by XenDesktop and XenApp from devices
+running the Linux operating system.
+
+.PP
+The citrix\-icaclient image is designed to be run by the atomic command with one of these options:
+
+.PP
+\fB\fCrun\fR
+
+.PP
+Starts the installed container with selected privileges to the host.
+
+.PP
+\fB\fCstop\fR
+
+.PP
+Stops the installed container
+
+.PP
+The container itself consists of:
+
+.PP
+.RS
+
+.nf
+\\\- Fedora 26 base image
+\\\- Atomic help file
+\\\- OpenSSH server
+\\\- Citrix Receiver
+
+.fi
+.RE
+
+.PP
+Files added to the container during docker build include:
+
+.PP
+.RS
+
+.nf
+\\\- help.1
+\\\- the Dockerfile itself
+\\\- wfclient.ini
+
+.fi
+.RE
+
+
+.SH "USAGE"
+.PP
+To use the citrix\-receiver container, you can run the atomic command with run or stop options:
+
+.PP
+To run the citrix\-receiver container:
+
+.PP
+\fB\fCatomic run citrix\-receiver\fR
+
+.PP
+To stop the citrix\-receiver container:
+
+.PP
+\fB\fCatomic stop citrix\-receiver\fR
+
+
+.SH LABELS
+.PP
+The citrix\-receiver container includes the following Atomic LABEL settings:
+that \fB\fCatomic\fR command can leverage:
+
+.PP
+\fB\fCRUN\fR
+
+.PP
+LABEL run="docker run \-d \-p 22:22 \-\-name \\${NAME} \\
+            \-v /etc/machine\-id:/etc/machine\-id:ro \\
+            \-v /etc/localtime:/etc/localtime:ro \\
+            \-e IMAGE=IMAGE \-e NAME=NAME \\${IMAGE}"
+
+.PP
+The contents of the RUN label tells an \fB\fCatomic run citrix\-icaclient\fR command to open port 22 and set the name of the container.
+
+.PP
+\fB\fCSTOP\fR
+
+.PP
+LABEL stop="docker stop \\${NAME}"
+
+
+.SH HISTORY
+.PP
+TBC

@@ -1,0 +1,24 @@
+# Created by https://www.gitignore.io/api/ansible
+
+### Ansible ###
+*.retry
+
+# End of https://www.gitignore.io/api/ansible
+
+# Created by https://www.gitignore.io/api/vim
+
+### Vim ###
+# swap
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-v][a-z]
+[._]sw[a-p]
+# session
+Session.vim
+# temporary
+.netrwhist
+*~
+# auto-generated tag files
+tags
+
+# End of https://www.gitignore.io/api/vim
