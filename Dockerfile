@@ -1,4 +1,4 @@
-FROM fedora:26
+FROM fedora:28
 
 # https://docs.projectatomic.io/container-best-practices/#_labels
 # https://github.com/projectatomic/ContainerApplicationGenericLabels
@@ -21,35 +21,35 @@ running the Linux operating system." \
       license="Copyright 1996-2017 Citrix Systems, Inc. All rights reserved. \
 Copyright (c) 1986-1997 RSA Security, Inc. All rights reserved." \
       maintainer="David Sastre <d.sastre.medina@gmail.com>" \
-      name="multicats/citrix-icaclient-fedora-26" \
+      name="multicats/citrix-icaclient-fedora" \
       release="1" \
       summary="Citrix Receiver is the easy-to-install client software that \
 provides access to your XenDesktop and XenApp installations." \
       url="https://citrix.com" \
       vcs-type="git" \
-      vcs-url="https://github.com/dawud/citrix-icalient-fedora-26.git" \
+      vcs-url="https://github.com/dawud/citrix-icalient-fedora.git" \
       vendor="Citrix" \
-      version=13.6.0.10243651
+      version=13.10.0.20-0
 #
 # 2. DYNAMIC LABELS:
 #
 # This labels can be inserted at build time:
-# `docker build \
-#       --label=build-date=$(date -Ins) \
-#       --label=release-date=$(date -Ins) \
-#       --label=vcs-ref=$(git rev-parse HEAD) ...`
 #
-#LABEL build-date="2017-07-07T21:54:52,383192881+01:00" \
-#      release-date="2017-07-07T21:54:52,383192881+01:00" \
-#      vcs-ref="3aa79a1d69c7c6acdb75100c343e10d3f4b93941"
+# `buildah bud \
+#     --build-arg=BYOD=https://byod.foo.com/ \
+#     --label=build-date=$(date -Ins) \
+#     --label=release-date=$(date -Ins) \
+#     --label=vcs-ref=$(git rev-parse HEAD) \
+#     --tag="multicats/citrix-icaclient-fedora:13.10.0.20-0" \
+#     --tag="multicats/citrix-icaclient-fedora:latest" .`
 #
 # 3. ACTION LABELS:
 #
-LABEL run="docker run -d -p 22:22 --name \${NAME} \
+LABEL run="podman run -d -p 22:22 --name \${NAME} \
           -v /etc/machine-id:/etc/machine-id:ro \
           -v /etc/localtime:/etc/localtime:ro \
           -e IMAGE=IMAGE -e NAME=NAME \${IMAGE}"
-LABEL stop="docker stop \${NAME}"
+LABEL stop="podman stop \${NAME}"
 #
 # OPENSHIFT LABELS
 #
@@ -67,8 +67,8 @@ provides access to your XenDesktop and XenApp installations." \
 LABEL com.citrix.license="Copyright 1996-2017 Citrix Systems, Inc. All rights reserved. \
 Copyright (c) 1986-1997 RSA Security, Inc. All rights reserved." \
       com.citrix.name="Citrix Receiver" \
-      com.citrix.is-beta="False" \
-      com.citrix.is-production="True"
+      com.citrix.is-beta="True" \
+      com.citrix.is-production="False"
 #
 # DOCUMENTATION
 #
@@ -83,8 +83,9 @@ ENV LANG=C.UTF-8 \
 
 # Override this variable at build time with an explicit value.
 # This labels can be inserted at build time:
-# `docker build \
-#       --build-arg=BYOD="https://mycompany.byod.com" ....`
+# `buildah bud \
+#       --build-arg=BYOD="https://mycompany.byod.com" \
+#       ....`
 ARG BYOD=https://www.duckduckgo.com
 
 # Install the ICA client, Firefox and OpenSSH
@@ -104,11 +105,14 @@ RUN DOWNLOAD_URL=$(curl -sL $CITRIX_URL | \
 
 # Passwordless access to the container, to be used in controlled environments
 RUN sed -i 's,^#PermitEmptyPasswords .*,PermitEmptyPasswords yes,' /etc/ssh/sshd_config; \
-    sed -i '2iauth sufficient pam_permit.so' /etc/pam.d/sshd
+    sed -i -e '2iauth sufficient pam_permit.so' \
+           -e 's,session .*required .*pam_loginuid.so,session optional pam_loginuid.so,' \
+           /etc/pam.d/sshd
 
 # Add non-root account to run the browser
 RUN useradd -ms /home/app/browser.sh app; \
-    printf "#!/bin/bash\nfirefox --new-instance $BYOD\n" > /home/app/browser.sh; \
+    printf '#!/bin/bash\n' > /home/app/browser.sh; \
+    printf "firefox --new-instance $BYOD\n" >> /home/app/browser.sh; \
     chmod a+rx /home/app/browser.sh
 
 # Copy default configuration
@@ -120,11 +124,13 @@ RUN pushd /opt/Citrix/ICAClient/keystore/cacerts && \
     /opt/Citrix/ICAClient/util/ctx_rehash > /dev/null; \
     cp /opt/Citrix/ICAClient/nls/en.UTF-8/eula.txt /opt/Citrix/ICAClient/nls/en/; \
     install -d -g app -o app -m 0700 /home/app/.config; \
-    su -s /bin/sh -c 'xdg-mime default wfica.desktop application/x-ica' app; \
+    mkdir /root/.config; \
+    xdg-mime default wfica.desktop application/x-ica; \
+    cp /root/.config/mimeapps.list /home/app/.config/; \
     chown app.app -R /home/app
 
 # Setup systemd
 ENV container docker
 STOPSIGNAL SIGRTMIN+3
-EXPOSE 22
+EXPOSE 22/tcp
 ENTRYPOINT [ "/sbin/init" ]
